@@ -1,2 +1,0 @@
-# devnews-api
-expressjs demo
