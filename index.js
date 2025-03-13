@@ -19,6 +19,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // 导入路由
 const categoriesRouter = require('./src/routes/categories');
 const commentsRouter = require('./src/routes/comments');
+const authRouter = require('./src/routes/auth');
+const postsRouter = require('./src/routes/posts');
+const uploadsRouter = require('./src/routes/uploads');
+const usersRouter = require('./src/routes/users');
+const statsRouter = require('./src/routes/stats');
 
 // 基础路由
 app.get('/', (req, res) => {
@@ -28,6 +33,14 @@ app.get('/', (req, res) => {
 // 注册路由
 app.use('/api/categories', categoriesRouter);
 app.use('/api/comments', commentsRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/uploads', uploadsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/stats', statsRouter);
+
+// 静态文件服务
+app.use('/uploads', express.static('uploads'));
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

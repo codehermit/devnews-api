@@ -7,6 +7,88 @@ const prisma = require('../config/database');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Uploads
+ *   description: 文件上传管理相关接口
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     File:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: 文件ID
+ *         filename:
+ *           type: string
+ *           description: 存储的文件名
+ *         originalName:
+ *           type: string
+ *           description: 原始文件名
+ *         mimeType:
+ *           type: string
+ *           description: 文件类型
+ *         size:
+ *           type: integer
+ *           description: 文件大小(字节)
+ *         url:
+ *           type: string
+ *           description: 文件访问URL
+ *         userId:
+ *           type: integer
+ *           description: 上传者ID
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: 创建时间
+ */
+
+/**
+ * @swagger
+ * /api/uploads:
+ *   post:
+ *     tags: [Uploads]
+ *     summary: 上传文件
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: 要上传的文件
+ *     responses:
+ *       201:
+ *         description: 上传成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/File'
+ *       400:
+ *         description: 请求参数错误
+ *       401:
+ *         description: 未认证
+ *       500:
+ *         description: 服务器错误
+ */
 // 上传文件
 router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
   try {
@@ -49,6 +131,41 @@ router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/uploads/{id}:
+ *   get:
+ *     tags: [Uploads]
+ *     summary: 获取文件信息
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 文件ID
+ *     responses:
+ *       200:
+ *         description: 获取成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/File'
+ *       401:
+ *         description: 未认证
+ *       404:
+ *         description: 文件不存在
+ *       500:
+ *         description: 服务器错误
+ */
 // 获取文件信息
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -83,6 +200,44 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/uploads/{id}:
+ *   delete:
+ *     tags: [Uploads]
+ *     summary: 删除文件
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 文件ID
+ *     responses:
+ *       200:
+ *         description: 删除成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   description: 操作结果信息
+ *       401:
+ *         description: 未认证
+ *       403:
+ *         description: 无权限
+ *       404:
+ *         description: 文件不存在
+ *       500:
+ *         description: 服务器错误
+ */
 // 删除文件
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {

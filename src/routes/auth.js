@@ -66,8 +66,7 @@ const registerValidation = [
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 description: 用户邮箱
+ *                 description: 用户名或邮箱
  *               password:
  *                 type: string
  *                 format: password
@@ -185,8 +184,7 @@ router.post('/register', registerValidation, async (req, res) => {
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 description: 用户邮箱
+ *                 description: 用户名或邮箱
  *               password:
  *                 type: string
  *                 format: password
@@ -216,7 +214,7 @@ router.post('/register', registerValidation, async (req, res) => {
  *         description: 服务器错误
  */
 router.post('/login', [
-  body('email').isEmail().withMessage('请提供有效的邮箱地址'),
+  body('email').notEmpty().withMessage('请提供用户名或邮箱'),
   body('password').notEmpty().withMessage('请提供密码')
 ], async (req, res) => {
   try {
@@ -227,10 +225,23 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { role: true }
-    });
+    // 支持用户名或邮箱登录
+    let user;
+    // 检查是否是邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(email)) {
+      // 如果是邮箱格式，通过邮箱查找用户
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { role: true }
+      });
+    } else {
+      // 如果不是邮箱格式，通过用户名查找用户
+      user = await prisma.user.findFirst({
+        where: { name: email },
+        include: { role: true }
+      });
+    }
 
     if (!user || !user.active) {
       return res.status(401).json({
@@ -243,7 +254,7 @@ router.post('/login', [
     if (!isValidPassword) {
       return res.status(401).json({
         status: 'error',
-        message: '邮箱或密码错误'
+        message: '用户名/邮箱或密码错误'
       });
     }
 
@@ -287,8 +298,7 @@ router.post('/login', [
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 description: 用户邮箱
+ *                 description: 用户名或邮箱
  *     responses:
  *       200:
  *         description: 重置密码邮件发送成功
@@ -458,6 +468,49 @@ router.post('/reset-password/:token', [
     res.status(500).json({
       status: 'error',
       message: '重置密码时发生错误'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: 用户退出登录
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 退出登录成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   description: 操作结果信息
+ *       500:
+ *         description: 服务器错误
+ */
+router.post('/logout', async (req, res) => {
+  try {
+    // JWT是无状态的，真正的退出登录逻辑应该在前端清除token
+    // 这里只提供一个标准的退出接口，以便前端调用
+    
+    res.json({
+      status: 'success',
+      message: '退出登录成功'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: '退出登录过程中发生错误'
     });
   }
 });

@@ -10,15 +10,17 @@ const authenticateToken = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         status: 'error',
-        message: '未提供认证令牌'
+        code: 401,
+        message: '未登录或登录已过期'
       });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return res.status(403).json({
+      return res.status(401).json({
         status: 'error',
-        message: '无效的认证令牌'
+        code: 401,
+        message: '未登录或登录已过期'
       });
     }
 
@@ -28,9 +30,10 @@ const authenticateToken = async (req, res, next) => {
     });
 
     if (!user || !user.active) {
-      return res.status(403).json({
+      return res.status(401).json({
         status: 'error',
-        message: '用户不存在或已被禁用'
+        code: 401,
+        message: '未登录或登录已过期'
       });
     }
 
@@ -40,6 +43,7 @@ const authenticateToken = async (req, res, next) => {
     console.error('Authentication error:', error);
     res.status(500).json({
       status: 'error',
+      code: 500,
       message: '认证过程中发生错误'
     });
   }
@@ -51,6 +55,7 @@ const authorizeRoles = (...roles) => {
     if (!req.user || !req.user.role) {
       return res.status(403).json({
         status: 'error',
+        code: 403,
         message: '无访问权限'
       });
     }
@@ -58,6 +63,7 @@ const authorizeRoles = (...roles) => {
     if (!roles.includes(req.user.role.name)) {
       return res.status(403).json({
         status: 'error',
+        code: 403,
         message: '当前角色无权限执行此操作'
       });
     }
